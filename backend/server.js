@@ -20,11 +20,16 @@ app.use(cors());
 
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 465,           // or 587 if 465 fails
+  secure: true,        // true for port 465, false for 587
   auth: {
     user: process.env.OWNER_EMAIL,
-    pass: process.env.OWNER_EMAIL_PASS
-  }
+    pass: process.env.OWNER_PASS,  // or OWNER_EMAIL_PASS, just keep it consistent
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 // MongoDB connection
@@ -537,22 +542,37 @@ app.post('/api/negotiate', async (req, res) => {
   try {
     const { customer, items, originalTotal, negotiatedTotal } = req.body;
 
+    // 1️⃣ Create transporter inside the route
+    const nodemailer = require("nodemailer");
+    const ownerEmail = process.env.OWNER_EMAIL;
+    const ownerPass = process.env.OWNER_EMAIL_PASS; // or OWNER_EMAIL_PASS
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: ownerEmail,
+        pass: ownerPass,
+      },
+    });
+
+    // 2️⃣ Save negotiation in DB
     await Negotiation.create({
       customer,
       items: items.map(i => ({
         name: i.name,
         brand: i.brand,
         quantity: i.quantity || i.bundles || 0,
-        price: i.totalPrice / (i.quantity || i.bundles || 1)
+        price: i.totalPrice / (i.quantity || i.bundles || 1),
       })),
       originalTotal,
-      negotiatedTotal
+      negotiatedTotal,
     });
 
+    // 3️⃣ Send the email
     await transporter.sendMail({
-      from: `"${customer.name}" <${process.env.OWNER_EMAIL}>`,
+      from: ownerEmail,
       replyTo: customer.email,
-      to: process.env.OWNER_EMAIL,
+      to: ownerEmail,
       subject: `Negotiation Request from ${customer.name}`,
       html: `
         <h3>Negotiation Request</h3>
@@ -563,15 +583,16 @@ app.post('/api/negotiate', async (req, res) => {
         <p><b>Requested Total:</b> ₹${negotiatedTotal}</p>
         <p><b>Items:</b> ${items.map(i => `${i.name} (${i.brand}) x ${i.quantity || i.bundles}`).join(', ')}</p>
         <p>Reply to this email to contact the customer.</p>
-      `
+      `,
     });
 
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error saving negotiation or sending email' });
+    console.error("❌ Negotiation mail error:", err);
+    res.status(500).json({ error: "Error saving negotiation or sending email" });
   }
 });
+
 
 // ===================== GET ALL NEGOTIATIONS (OWNER VIEW) =====================
 app.get('/api/negotiations', async (req, res) => {
