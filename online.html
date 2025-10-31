@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JR Stationaries</title>
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    height: 100%;
+}
+.homepage {
+    height: 100vh; 
+    width: 100%;
+    background-image: url('images/8573095.jpg');
+    background-size: cover;
+    background-position: right center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: relative;
+    padding-left: 50px;
+    color: white;
+    text-shadow: 1px 1px 4px #000;
+    flex-direction: column;
+}
+.homepage .content {
+    font-size: large;
+    margin-left: 30px;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+.top-right {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+.top-right button {
+    padding: 12px 25px;
+    font-size: 17px;
+    border-radius: 10px;
+    border: 2px solid white;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+.top-right button:hover {
+    background-color: white;
+    color: #ff9800;
+    border-color: #ff9800;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0,0,0,0.3);
+}
+.btn {
+    padding: 10px 15px;
+    font-size: 18px;
+    background-color: #ff9800;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.btn:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
+}
+/* User icon + dropdown */
+.userIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ff9800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    color: white;
+    font-size: 18px;
+}
+#userDropdown {
+    display: none;
+    position: absolute;
+    top: 90px;
+    right: 50px;
+    background:#3a3a3a;
+    color:white;
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 4px 8px rgba(0,0,0,0.3);
+    z-index:1000;
+}
+.dropdown-item {
+    display: block;
+    width: 200px;
+    padding: 10px 15px;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.2s;
+}
+.dropdown-item:hover {
+    background: #555;
+}
+.dropdown-item#logoutBtn {
+    color: red;
+}
+
+/* 🔹 Added for Notifications */
+#notificationsSection {
+    display: none;
+    position: fixed;
+    top: 100px;
+    right: 50px;
+    width: 350px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.95);
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    padding: 15px;
+    color: #333;
+    z-index: 1100;
+}
+#notificationsSection h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #ff9800;
+}
+.notification-item {
+    background: #f4f4f4;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.notification-item.accepted { border-left: 5px solid green; }
+.notification-item.rejected { border-left: 5px solid red; }
+
+.floating-motto {
+  position: absolute;
+  bottom: 30px;
+  left: 40px;
+  color: #fff;
+  font-style: italic;
+  font-size: 18px;
+  opacity: 0.9;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+}
+
+</style>
+</head>
+<body>
+
+<div class="homepage">
+    <div class="top-right" id="userSection">
+        <button id="loginBtn">Login / Signup</button>
+    </div>
+
+    <div id="welcomeMsg" style="position:absolute; top:50px; right:100px; color:white; font-weight:bold; font-size:30px; text-shadow:1px 1px 4px #000;"></div>
+
+    <div class="content">
+        <h1>JR Stationaries</h1>
+        <p>Quality Stationaries for Schools, Offices & Shops</p>
+        <p class="floating-motto">“Where Ideas Begin With Every Page”</p>
+        <button class="btn" id="orderBtn">Place Order</button>
+    </div>
+</div>
+
+<!-- User Dropdown -->
+<div id="userDropdown">
+    <button class="dropdown-item" id="myAccountBtn">My Account</button>
+    <button class="dropdown-item" id="notificationsBtn">Notifications</button>
+    <button class="dropdown-item" id="orderHistoryBtn">Order History</button>
+    <button class="dropdown-item" id="logoutBtn">Logout</button>
+</div>
+
+<!-- 🔹 Notification Popup Section -->
+<div id="notificationsSection">
+    <h3>Notifications</h3>
+    <div id="notificationsContainer">Loading...</div>
+</div>
+
+<!-- Login / Signup Modal -->
+<div id="authModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+background: rgba(0,0,0,0.7); justify-content:center; align-items:center;">
+    <div style="background: rgba(255, 255, 255,0.1); padding:30px; border-radius:10px; width:300px; position:relative;">
+        <span id="closeModal" style="position:absolute; top:10px; right:15px; cursor:pointer;">&times;</span>
+        <h2 id="authTitle">Login</h2>
+        <input type="text" id="name" placeholder="Full Name" style="width:100%; padding:5px; margin:10px 0;display: none">
+        <input type="text" id="phone" placeholder="Phone Number" style="width:100%; padding:5px; margin:5px 0;display: none">
+        <input type="email" id="email" placeholder="Email" style="width:100%; padding:5px; margin:5px 0;">
+        <input type="password" id="password" placeholder="Password" style="width:100%; padding:5px; margin:5px 0;">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" style="width:100%; padding:5px; margin:5px 0; display:none;">
+        <button class="btn" id="authSubmit">Login</button>
+        <p id="toggleAuth" style="cursor:pointer; margin-top:10px; text-align:center; color:white;">Don't have an account? Sign up</p>
+    </div>
+</div>
+
+<script src="online.js"></script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+/* --- GLOBAL RESET --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* --- LAYOUT --- */
+body {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fc;
+  color: #333;
+}
+
+.sidebar {
+  width: 240px;
+  background: #1e1e2f;
+  color: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.nav-links {
+  list-style: none;
+  padding: 0;
+}
+
+.nav-links li {
+  padding: 12px 15px;
+  margin: 6px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-links li:hover,
+.nav-links li.active {
+  background: #3a3a5c;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+/* --- SECTION --- */
+.section {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+h2 {
+  font-size: 22px;
+  color: #222;
+  margin-bottom: 15px;
+}
+
+/* --- TABLES --- */
+.styled-table,
+#itemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.styled-table th,
+#itemsTable th {
+  background: #f1f1f8;
+  color: #333;
+  padding: 10px;
+  text-align: left;
+}
+
+.styled-table td,
+#itemsTable td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.styled-table tr:hover td,
+#itemsTable tr:hover td {
+  background: #fafaff;
+}
+
+/* --- SEARCH & FILTER --- */
+.search-container,
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.search-container input,
+.filter-bar input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 250px;
+}
+
+.order-search {
+  position: relative; /* 🔹 makes suggestion box align under this container */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-left: -40px; /* moves it slightly left */
+}
+
+.order-search label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-left: 4px;
+}
+
+.order-search input {
+  width: 360px;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #fafafa;
+  transition: 0.2s ease;
+}
+
+.order-search input:focus {
+  border-color: #007bff;
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+/* ✅ Suggestion box is now correctly aligned */
+.suggestion-box {
+  position: absolute;
+  top: 70px; /* distance from top of container */
+  left: 0;
+  width: 360px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestion-box div {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.suggestion-box div:hover {
+  background-color: #f4f4f4;
+}
+
+.suggestion-box div {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestion-box div:hover {
+  background: #f1f1f1;
+}
+
+/* --- BUTTONS --- */
+.btn {
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: #e0e0e0;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: #d0d0d0;
+}
+
+.btn.primary {
+  background: #4b6bfb;
+  color: white;
+}
+
+.btn.primary:hover {
+  background: #3a56d8;
+}
+
+.btn.success {
+  background: #2ecc71;
+  color: white;
+}
+
+.btn.danger {
+  background: #e74c3c;
+  color: white;
+}
+
+/* --- ORDER SECTION --- */
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.order-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.total-area {
+  text-align: right;
+}
+
+.print-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#printTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#printTable th,
+#printTable td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+
+#printTable th {
+  background: #f5f5f5;
+}
+
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}
+
+/* ====== Order History ====== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafafa;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+.filter-bar input {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.filter-bar button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+#filterBtn {
+  background: #007bff;
+  color: white;
+}
+
+#resetBtn {
+  background: #e9ecef;
+  color: #333;
+}
+
+/* ====== Table ====== */
+.table-wrapper {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+#ordersTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+#ordersTable th,
+#ordersTable td {
+  padding: 12px 14px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+#ordersTable th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+#ordersTable tr:hover {
+  background: #f9fbff;
+}
+
+/* ====== Modal ====== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 700px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.close-modal {
+  float: right;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+#orderDetailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#orderDetailsTable th,
+#orderDetailsTable td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}

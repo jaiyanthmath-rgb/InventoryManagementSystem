@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Interface | Dashboard</title>
+  <link rel="stylesheet" href="owner.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body onload="document.querySelector('[data-section=dashboard]').click()">
+  <div class="layout">
+
+    <!-- 🔹 Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>JR Stationaries</h2>
+      </div>
+
+      <ul>
+        <li class="active" data-section="dashboard"><i class="icon">📊</i> Dashboard</li>
+        <li data-section="stock"><i class="icon">📦</i> Stock</li>
+        <li class="has-submenu">
+          <i class="icon">🧾</i> Orders
+          <ul class="submenu">
+            <li id="online-orders">Online Orders</li>
+            <li id="offline-orders">Offline Orders</li>
+          </ul>
+        </li>
+        <li data-section="negotiations"><i class="icon">💬</i> Negotiations</li>
+        <li data-section="notifications"><i class="icon">🔔</i> Notifications</li>
+        <li data-section="profile"><i class="icon">👤</i> About Us</li>
+      </ul>
+
+      <button id="logout" class="logout-btn">🚪 Logout</button>
+    </aside>
+
+    <!-- 🔹 Main Content -->
+    <main class="main-content">
+
+      <!-- Top Bar -->
+      <header class="topbar">
+        <h1 style="
+    font-family: 'Great Vibes', cursive;
+    font-style: italic; 
+    ">
+    "Where Ideas Begin With Every Page"
+    </h1>
+
+        <div class="profile-container">
+          <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-icon" alt="Profile" />
+          <div class="dropdown-menu">
+            <p><strong>Owner</strong></p>
+            <hr />
+            <button data-section="profile">My Account</button>
+            <button id="logout">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dynamic Content Area -->
+      <section id="contentArea">
+        <div id="onlineOrdersTable" class="table-container" style="display:none;"></div>
+        <div id="offlineOrdersTable" class="table-container" style="display:none;"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- JS -->
+  <script src="owner.js"></script>
+</body>
+</html>

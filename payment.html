@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Place Order - JR Stationaries</title>
+<style>
+body, html {margin:0;padding:0;font-family:Arial,sans-serif;background:#2e2e2e;color:#fff;}
+h1{text-align:center;margin-top:20px;}
+form{max-width:500px;margin:20px auto;background:#3a3a3a;padding:25px;border-radius:12px;}
+input{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:16px;}
+button{padding:12px 20px;border:none;border-radius:8px;font-weight:bold;background:#4caf50;color:#fff;margin-top:10px;cursor:pointer;transition:0.3s;width:100%;}
+button:hover{background:#43a047;}
+#totals, #thankMsg{display:none;max-width:500px;margin:20px auto;padding:20px;background:#3a3a3a;border-radius:10px;}
+#totals p, #thankMsg p{margin:5px 0;}
+</style>
+</head>
+<body>
+
+<h1>Place Your Order</h1>
+
+<form id="orderForm">
+  <input type="text" id="name" placeholder="Full Name" required>
+  <input type="text" id="address" placeholder="Delivery Address" required>
+  <button type="submit">Place Order</button>
+</form>
+
+<div id="totals">
+  <p id="subtotalP"></p>
+  <p id="deliveryP"></p>
+  <p id="taxP"></p>
+  <p id="totalP" style="font-weight:bold;"></p>
+  <button id="confirmBtn">Confirm Order</button>
+</div>
+
+<div id="thankMsg">
+  <p>Thank you! Your order has been placed.</p>
+  <button onclick="window.location.href='online.html'">Back to Home</button>
+</div>
+
+<script>
+const orderForm = document.getElementById('orderForm');
+const totalsDiv = document.getElementById('totals');
+const subtotalP = document.getElementById('subtotalP');
+const deliveryP = document.getElementById('deliveryP');
+const taxP = document.getElementById('taxP');
+const totalP = document.getElementById('totalP');
+const confirmBtn = document.getElementById('confirmBtn');
+const thankMsg = document.getElementById('thankMsg');
+
+// Step 1: Place Order -> show totals
+orderForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const address = document.getElementById('address').value.trim();
+  if(!name || !address){
+    alert("Please fill both fields");
+    return;
+  }
+
+  // Read order from localStorage
+  const storedOrder = JSON.parse(localStorage.getItem('orderData') || '{}');
+  const items = storedOrder.items || [];
+  if(items.length === 0){
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // Calculate totals
+  const subtotal = items.reduce((sum, i)=> sum + (Number(i.totalPrice)||0),0);
+  const delivery = Math.floor(Math.random()*50)+30; // random delivery 30-80
+  const tax = +(subtotal*0.08).toFixed(2);
+  const total = +(subtotal+delivery+tax).toFixed(2);
+
+  // Save totals to localStorage
+  localStorage.setItem('orderTotals', JSON.stringify({subtotal, delivery, tax, total}));
+
+  // Show totals + confirm button
+  subtotalP.innerText = `Subtotal: ₹${subtotal.toFixed(2)}`;
+  deliveryP.innerText = `Delivery: ₹${delivery}`;
+  taxP.innerText = `Tax (8%): ₹${tax.toFixed(2)}`;
+  totalP.innerText = `Total: ₹${total.toFixed(2)}`;
+  totalsDiv.style.display = 'block';
+  orderForm.style.display = 'none';
+});
+
+// Step 2: Confirm Order -> save to MongoDB
+confirmBtn.addEventListener('click', async ()=>{
+  const storedOrder = JSON.parse(localStorage.getItem('orderData') || '{}');
+  const totals = JSON.parse(localStorage.getItem('orderTotals') || '{}');
+  const items = storedOrder.items || [];
+  if(items.length === 0){
+    alert("No items to confirm");
+    return;
+  }
+
+  const name = document.getElementById('name')?.value || storedOrder.name || "Anonymous";
+  const address = document.getElementById('address')?.value || storedOrder.address || "N/A";
+
+  try{
+    const res = await fetch('https://inventorymanagementsystem-o1oy.onrender.com/api/online-orders', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        name,
+        address,
+        items,
+        subtotal: totals.subtotal,
+        delivery: totals.delivery,
+        tax: totals.tax,
+        total: totals.total
+      })
+    });
+    const data = await res.json();
+    if(res.ok){
+      totalsDiv.style.display = 'none';
+      thankMsg.style.display = 'block';
+      localStorage.removeItem('orderData');
+      localStorage.removeItem('orderTotals');
+    } else {
+      alert("Failed to save order: "+data.message);
+    }
+  } catch(err){
+    console.error(err);
+    alert("Error saving order. Check console.");
+  }
+});
+</script>
+
+</body>
+</html>

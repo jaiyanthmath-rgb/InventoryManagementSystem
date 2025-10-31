@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cashier Dashboard</title>
+  <link rel="stylesheet" href="cashier.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2 style="color: white;">JR Stationaries</h2>
+    </div>
+    <ul class="nav-links">
+      <li onclick="showSection('itemsList')" class="active">📦 Items List</li>
+      <li onclick="showSection('newOrder')">🛒 New Order</li>
+      <li onclick="showSection('ordersHistory')">🧾 Orders History</li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Items List -->
+    <section id="itemsList" class="section">
+      <h2>Items List</h2>
+      <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search items...">
+        <div id="suggestionBox" class="suggestion-box"></div>
+      </div>
+      <table id="itemsTable">
+        <thead>
+          <tr>
+            <th>Item Name</th>
+            <th>Brand</th>
+            <th>Price</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- New Order -->
+    <section id="newOrder" class="section hidden">
+      <h2>🛒 Create New Order</h2>
+      <button id="createOrderBtn" class="btn primary">Create Order</button>
+
+      <div id="orderSection" class="order-section hidden">
+        <div class="order-header">
+          <h3>Order #<span id="orderNumber"></span></h3>
+          <div class="order-search">
+            <label>Add Item</label>
+            <input id="orderSearch" placeholder="Type item name..." />
+            <div id="orderSuggestionBox" class="suggestion-box"></div>
+          </div>
+        </div>
+
+        <table id="orderTable" class="styled-table">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Item Name</th>
+              <th>Brand</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="order-footer">
+          <button id="clearOrder" class="btn danger">Clear Order</button>
+          <div class="total-area">
+            <h3>Final Total: ₹ <span id="finalTotal">0</span></h3>
+            <button id="calculateTotal" class="btn">Calculate</button>
+            <button id="printBill" class="btn success">🧾 Print Bill</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Orders History -->
+    <!-- =======================
+     ORDER HISTORY SECTION
+======================= -->
+<div id="ordersHistory" class="section hidden">
+  <h2>🧾 Orders History</h2>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <label>
+      From:
+      <input type="date" id="fromDate" />
+    </label>
+    <label>
+      To:
+      <input type="date" id="toDate" />
+    </label>
+    <button id="filterBtn">Filter</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="table-wrapper">
+    <table id="ordersTable">
+      <thead>
+        <tr>
+          <th>Order No.</th>
+          <th>Date</th>
+          <th>Total Items</th>
+          <th>Amount (₹)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal for viewing details -->
+<div id="orderModal" class="modal hidden">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <h3>Order Details</h3>
+    <p id="modalOrderInfo"></p>
+    <table id="orderDetailsTable">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Item</th>
+          <th>Brand</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
+    <!-- Printable Bill -->
+    <div id="printSection" class="hidden">
+      <div class="print-container">
+        <h2>JR Stationarie's</h2>
+        <p>“Where Ideas Begin With Every Page”</p>
+        <p>Date: <span id="printDate"></span></p>
+        <table id="printTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Item</th>
+              <th>Brand</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <h3>Total Value: ₹ <span id="printTotal">0</span></h3>
+      </div>
+    </div>
+  </main>
+
+  <script src="cashier.js"></script>
+</body>
+</html>

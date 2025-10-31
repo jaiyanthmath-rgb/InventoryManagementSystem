@@ -1,0 +1,574 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ========================
+   GLOBAL BASE
+======================== */
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #99b898;
+  overflow: hidden;
+  color: #2a363b;
+}
+
+/* ========================
+   LAYOUT
+======================== */
+.layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #99b898;
+}
+
+/* ========================
+   SIDEBAR
+======================== */
+.sidebar {
+  width: 250px;
+  background: #2a363b; /* dark base */
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.sidebar-header h2 {
+  color: #feceab;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar ul li {
+  padding: 14px 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  color: #d1d1d1;
+  font-size: 15px;
+}
+
+.sidebar ul li:hover {
+  background: #e84a5f;
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.sidebar ul li.active {
+  background: #ff847c;
+  color: #2a363b;
+  font-weight: 600;
+  border-left: 4px solid #feceab;
+}
+
+.logout-btn {
+  background: #e84a5f;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  margin: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+  box-shadow: 0 2px 10px rgba(232, 74, 95, 0.4);
+}
+
+.logout-btn:hover {
+  background: #ff847c;
+}
+
+/* ====== Submenu Styling ====== */
+.has-submenu {
+  position: relative;
+}
+
+.submenu {
+  display: none;
+  position: absolute;
+  left: 250px; /* right of sidebar */
+  top: 0;
+  background: #363636; /* slightly lighter dark tone */
+  min-width: 180px;
+  border-radius: 6px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 99;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.submenu li {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #f1f1f1;
+  transition: background 0.3s;
+}
+
+.submenu li:hover {
+  background: #e84a5f;
+  color: #fff;
+}
+
+/* Show submenu on hover */
+.has-submenu:hover > .submenu {
+  display: flex;
+}
+
+
+
+
+/* ========================
+   MAIN CONTENT
+======================== */
+.main-content {
+  margin-left: 250px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: calc(100% - 250px);
+  background: #b7cae2;
+  transition: all 0.3s ease;
+}
+
+/* ========================
+   TOPBAR
+======================== */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2a363b;
+  color: #fff;
+  padding: 18px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  height: 70px;
+  position: fixed;
+  top: 0;
+  left: 250px;
+  width: calc(100% - 250px);
+  z-index: 100;
+}
+
+.topbar h1 {
+  font-size: 20px;
+  color: #feceab;
+  letter-spacing: 0.5px;
+}
+
+.profile-container {
+  position: relative;
+}
+
+.profile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #feceab;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.profile-icon:hover {
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  background: #fff;
+  color: #2a363b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  display: none;
+  flex-direction: column;
+  width: 160px;
+  z-index: 200;
+}
+
+.dropdown-menu button {
+  padding: 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.dropdown-menu button:hover {
+  background: #f1f1f1;
+}
+
+/* ========================
+   CONTENT AREA
+======================== */
+#contentArea {
+  margin-top: 70px;
+  padding: 30px 40px;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  background: linear-gradient(180deg, #feceab 0%, #99b898 100%);
+}
+
+#contentArea h2 {
+  font-size: 24px;
+  color: #2a363b;
+  margin-bottom: 10px;
+}
+
+#contentArea p {
+  color: #333;
+}
+
+/* ========================
+   DASHBOARD CARDS
+======================== */
+.dashboard-container {
+  text-align: center;
+  padding: 40px 20px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.dashboard-container h2 {
+  font-size: 30px;
+  margin-bottom: 35px;
+  color: #f1f1f1;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ----------------------------
+   💰 TOTAL REVENUE MAIN CARD
+-----------------------------*/
+.revenue-main-card {
+  background: linear-gradient(145deg, #1c1f24, #2b2f35);
+  color: #feceab;
+  padding: 60px 40px;
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  max-width: 800px;
+  margin: 0 auto 60px auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.revenue-main-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+}
+
+.revenue-main-card h3 {
+  font-size: 26px;
+  margin-bottom: 15px;
+  color: #feceab;
+}
+
+.revenue-main-card p {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 25px;
+  color: #feceab !important; /* keep same color always */
+  letter-spacing: 1px;
+  opacity: 1 !important;
+  text-shadow: none !important; /* ✨ removed the glow */
+  transition: all 0.3s ease-in-out;
+}
+
+.revenue-main-card p:hover {
+  text-shadow: none !important; /* no glow on hover */
+  color: #feceab !important; /* ensure no color change */
+}
+
+/* Animated gradient button */
+.revenue-main-card button {
+  background: linear-gradient(90deg, #00bcd4, #6200ea);
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+
+.revenue-main-card button:hover {
+  box-shadow: 0 0 15px rgba(98, 0, 234, 0.7);
+  transform: scale(1.07);
+}
+
+.revenue-main-card button:active {
+  transform: scale(0.98);
+}
+
+/* ----------------------------
+   📊 SMALLER DASHBOARD CARDS
+-----------------------------*/
+.dashboard-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.dashboard-row .card {
+  background: #2a363b;
+  color: #feceab;
+  padding: 30px;
+  border-radius: 18px;
+  width: 240px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.dashboard-row .card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(232, 74, 95, 0.4);
+}
+
+.dashboard-row .card h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #feceab;
+  font-weight: 600;
+}
+
+.dashboard-row .card p {
+  font-size: 20px;
+  font-weight: bold;
+  color: #feceab !important; /* same color always */
+  text-shadow: none !important; /* ✨ removed the glow */
+  transition: all 0.3s ease-in-out;
+}
+
+.dashboard-row .card p:hover {
+  text-shadow: none !important; /* no hover glow */
+  color: #feceab !important; /* ensure color remains same */
+}
+
+/* ----------------------------
+   ✨ ANIMATIONS
+-----------------------------*/
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================
+   TABLES (Professional Theme)
+======================== */
+.table-container {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 14px;
+  margin: 25px;
+  overflow-x: auto;
+  box-shadow: 0 4px 20px rgba(42, 54, 59, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+/* Table Base */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  color: #2a363b;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Table Header */
+thead {
+  background: #2a363b; /* Deep charcoal */
+  color: #99b898; /* Soft mint text */
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #e84a5f; /* Rose red underline */
+}
+
+thead th {
+  padding: 12px 18px;
+  text-align: left;
+}
+
+/* Table Body Rows */
+tbody tr {
+  border-bottom: 1px solid #eee;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+tbody tr:nth-child(even) {
+  background: #f8faf8; /* Very soft mint tint */
+}
+
+tbody tr:hover {
+  background: #99b898; /* Mint hover */
+  color: #2a363b;
+  transform: scale(1.005);
+}
+
+thead th {
+  padding: 12px 18px;
+  text-align: center; /* ✅ Center align header text */
+}
+
+/* Table Cells */
+td {
+  padding: 10px 18px;
+  color: #2a363b;
+}
+
+/* Rounded Corners */
+table, th, td {
+  border: none;
+  border-collapse: collapse;
+}
+
+/* Sticky Header */
+thead th {
+  position: sticky;
+  top: 0;
+  background: #2a363b;
+  z-index: 10;
+}
+
+/* ========================
+   RESPONSIVE TABLE
+======================== */
+@media (max-width: 768px) {
+  table {
+    font-size: 13px;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody td {
+    display: block;
+    text-align: right;
+    padding: 8px 10px;
+    position: relative;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    color: #e84a5f; /* rose red for label */
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  tbody tr {
+    margin-bottom: 10px;
+    display: block;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+}
+/* ========================
+   SCROLLBAR
+======================== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e84a5f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff847c;
+}
+
+/* ========================
+   HOME PAGE SECTION
+======================== */
+.home-section {
+  height: calc(100vh - 70px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: inherit; /* same gradient/background */
+  color: #2a363b;
+  margin-top: 70px;
+  animation: fadeIn 1.2s ease-in-out;
+}
+
+.company-name {
+  font-size: 58px;
+  font-weight: 700;
+  color: #2a363b;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.motto {
+  font-size: 20px;
+  color: #444;
+  margin-bottom: 30px;
+  font-style: italic;
+}
+
+.about-btn {
+  background: linear-gradient(90deg, #e84a5f, #ff847c);
+  color: #fff;
+  border: none;
+  padding: 14px 36px;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 18px rgba(232, 74, 95, 0.4);
+}
+
+.about-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 22px rgba(232, 74, 95, 0.5);
+}
+
+.about-btn:active {
+  transform: translateY(0);
+}
+
+

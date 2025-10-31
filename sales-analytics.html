@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Analytics Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #272323;
+      --panel: #010000;
+      --muted: #9aa0a6;
+      --accent: rgb(57, 216, 57);
+      --card: #f6f7f9;
+      --card-text: #0f1720;
+      --glass: rgba(255, 255, 255, 0.03);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(180deg, var(--bg-dark), #222222);
+      color: #e9eef2;
+    }
+
+    header {
+      background: linear-gradient(90deg, #161616, #1f1f1f);
+      padding: 22px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--accent);
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filters select,
+    .filters button {
+      background: #232323;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+    }
+
+    .filters button {
+      background: var(--accent);
+      color: #111;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+
+    .filters button:hover { transform: scale(1.03); }
+
+    /* KPI section */
+    .kpi-container {
+      display: flex;
+      gap: 18px;
+      padding: 22px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 1100px;
+      margin: 16px auto;
+    }
+
+    .kpi {
+      min-width: 160px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 14px;
+      border-radius: 8px; /* Sharper corners */
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .kpi h2 {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .kpi p {
+      margin: 8px 0 0;
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1.25rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 8px auto 60px;
+      padding: 0 16px;
+    }
+
+    /* Table card */
+    .table-card {
+      background: var(--card);
+      color: var(--card-text);
+      border-radius: 8px; /* Sharper */
+      padding: 16px;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+      margin-bottom: 25px;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .table-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .segmented {
+      display: flex;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .segmented button {
+      background: transparent;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .segmented button.active {
+      background: var(--accent);
+      color: #111;
+    }
+
+    /* Table */
+    table {
+      width: 92%; /* narrowed */
+      margin: 0 auto;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    thead th {
+      padding: 10px 12px;
+      color: #394042;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      color: #102023;
+    }
+
+    .table-footer {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .print-btn {
+      background: var(--accent);
+      color: #111;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Charts */
+    .chart-section {
+      background: var(--card);
+      color: var(--card-text);
+      border-radius: 8px; /* Sharper look */
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 340px !important;
+    }
+
+    /* ✅ Modified Pie Chart Size Only */
+    #brandsChart {
+      max-width: 380px !important;
+      max-height: 380px !important;
+      width: 100%;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+
+    footer {
+      color: #9aa0a6;
+      text-align: center;
+      margin: 30px 0 60px;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-container { justify-content: space-around; }
+      canvas { height: 280px !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📈 Sales Analytics Dashboard</h1>
+
+    <div class="filters">
+      <select id="timeRange">
+        <option value="7">Weekly</option>
+        <option value="30" selected>Monthly (30d)</option>
+        <option value="365">Yearly (365d)</option>
+      </select>
+
+      <select id="channelFilter">
+        <option value="all" selected>All Channels</option>
+        <option value="online">Online</option>
+        <option value="offline">Offline</option>
+      </select>
+
+      <button id="refreshBtn">Refresh</button>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <div class="kpi-container">
+    <div class="kpi"><h2>Total Revenue</h2><p id="totalRevenue">₹0</p></div>
+    <div class="kpi"><h2>Online Revenue</h2><p id="onlineRevenue">₹0</p></div>
+    <div class="kpi"><h2>Offline Revenue</h2><p id="offlineRevenue">₹0</p></div>
+    <div class="kpi"><h2>Online Orders</h2><p id="onlineOrders">0</p></div>
+    <div class="kpi"><h2>Offline Orders</h2><p id="offlineOrders">0</p></div>
+  </div>
+
+  <main class="container">
+    <!-- Table -->
+    <section class="table-card" id="topTableCard">
+      <div class="table-header">
+        <div class="table-left">
+          <div style="font-weight:700;">Top Selling</div>
+
+          <div class="segmented" id="typeSegment">
+            <button data-type="items" class="active">Items</button>
+            <button data-type="brands">Brands</button>
+          </div>
+
+          <div class="segmented" id="metricSegment" style="margin-left:8px">
+            <button data-metric="quantity" class="active">By Quantity</button>
+            <button data-metric="revenue">By Revenue</button>
+          </div>
+        </div>
+
+        <button class="print-btn" id="viewAllBtn" title="View All">View All</button>
+      </div>
+
+      <table id="topTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th id="colTitle">Item</th>
+            <th style="text-align:right" id="colMetric">Quantity</th>
+            <th style="text-align:right" id="colOpposite">Revenue</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="table-footer">
+        <button class="print-btn" data-target="topTableCard">Print Table</button>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="chart-section">
+      <canvas id="ordersChart"></canvas>
+    </section>
+
+    <section class="chart-section">
+      <canvas id="topItemsChart"></canvas>
+    </section>
+
+    <!-- ✅ Enlarged Pie Chart -->
+    <section class="chart-section">
+      <canvas id="brandsChart"></canvas>
+    </section>
+  </main>
+
+  <footer>Inventory Management System for SME</footer>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-top">
+        <h3 id="modalTitle">All Records</h3>
+        <div>
+          <button class="close-btn" id="modalClose">Close</button>
+          <button class="close-btn" id="modalPrint">Print</button>
+        </div>
+      </div>
+
+      <div style="overflow:auto;">
+        <table id="modalTable">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>Quantity</th><th>Revenue</th><th>Channel</th><th>Last Sold</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Link to JS -->
+  <script src="./sales-analytics.js"></script>
+</body>
+</html>
