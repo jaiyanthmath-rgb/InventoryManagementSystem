@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const Notification = require('./models/Notification');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
 // Models
 const Item = require('./models/Items');
@@ -18,16 +19,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Nodemailer transporter (Gmail)
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587, // Brevo uses 587
-  secure: false, // must be false for port 587
-  auth: {
-    user: process.env.BREVO_EMAIL,
-    pass: process.env.OWNER_EMAIL_PASS,
-  },
-});
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
@@ -268,6 +259,8 @@ module.exports = app;
 // ===================== ORDERS ROUTES =====================
 
 // Save a new offline order
+// Add this at top of your server.js
+
 app.post('/api/orders', async (req, res) => {
   try {
     const { items, total, buyer_name, buyer_email } = req.body;
@@ -280,7 +273,7 @@ app.post('/api/orders', async (req, res) => {
     const lastOrder = await Order.findOne().sort({ orderNumber: -1 }).lean();
     const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
 
-    // ✅ Save order first with unique orderNumber
+    // ✅ Save order
     const order = new Order({
       orderNumber: nextOrderNumber,
       items,
@@ -292,16 +285,13 @@ app.post('/api/orders', async (req, res) => {
     const salesRecords = [];
     const stockUpdates = [];
 
-    // ✅ Configure email transporter once
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.BREVO_EMAIL,
-        pass: process.env.OWNER_EMAIL_PASS,
-      },
-    });
+    // ✅ Configure Brevo API client (using API key)
+    const SibApiV3Sdk = require('sib-api-v3-sdk');
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    const apiKey = defaultClient.authentications['api-key'];
+    apiKey.apiKey = process.env.BREVO_API_KEY;
+
+    const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
 
     for (const it of items) {
       const name = it.name || it.itemName || it.item_name;
@@ -346,78 +336,63 @@ app.post('/api/orders', async (req, res) => {
 
       if (!updated) continue;
 
-      // ✅ Adjust online/offline stock
       if (buyer_email) {
-        await Item.findByIdAndUpdate(itemDoc._id, {
-          $inc: { [onlineKey]: -quantitySold },
-        });
+        await Item.findByIdAndUpdate(itemDoc._id, { $inc: { [onlineKey]: -quantitySold } });
       } else {
-        await Item.findByIdAndUpdate(itemDoc._id, {
-          $inc: { [offlineKey]: -quantitySold },
-        });
+        await Item.findByIdAndUpdate(itemDoc._id, { $inc: { [offlineKey]: -quantitySold } });
       }
 
-      // ✅ Re-fetch item for latest values
       const refreshed = await Item.findById(itemDoc._id);
-
-      // Clamp negative stock
       const newQty = Number(refreshed.quantity?.[brand] ?? 0);
-      if (newQty < 0) {
-        await Item.findByIdAndUpdate(itemDoc._id, { $set: { [qtyKey]: 0 } });
-      }
+      if (newQty < 0) await Item.findByIdAndUpdate(itemDoc._id, { $set: { [qtyKey]: 0 } });
 
-      // ✅ Check stock limits
-      const brandLimit = refreshed.limits.find((l) => l.brand === brand);
+      const brandLimit = refreshed.limits.find(l => l.brand === brand);
       if (brandLimit) {
         const offlineStock = refreshed.offline_stock?.[brand] ?? 0;
         const onlineStock = refreshed.online_stock?.[brand] ?? 0;
 
-        // Compare with limits
-        if (offlineStock < brandLimit.offline_limit) {
-          const subject = `⚠️ Low Offline Stock Alert for ${name} (${brand})`;
-          const body = `
-            <h3>Low Offline Stock Alert</h3>
-            <p>Item: <b>${name}</b></p>
-            <p>Brand: <b>${brand}</b></p>
-            <p>Current Offline Stock: <b>${offlineStock}</b></p>
-            <p>Offline Limit: <b>${brandLimit.offline_limit}</b></p>
-            <p>Please restock soon.</p>
-          `;
+        const alerts = [];
 
-          try {
-            await transporter.sendMail({
-              from: process.env.SENDER_EMAIL,
-              to: process.env.OWNER_EMAIL,
-              subject,
-              html: body,
-            });
-            console.log(`📩 Offline stock alert sent for ${name} (${brand})`);
-          } catch (err) {
-            console.error('❌ Failed to send offline stock alert:', err);
-          }
+        if (offlineStock < brandLimit.offline_limit) {
+          alerts.push({
+            subject: `⚠️ Low Offline Stock Alert for ${name} (${brand})`,
+            html: `
+              <h3>Low Offline Stock Alert</h3>
+              <p><b>Item:</b> ${name}</p>
+              <p><b>Brand:</b> ${brand}</p>
+              <p><b>Current Offline Stock:</b> ${offlineStock}</p>
+              <p><b>Offline Limit:</b> ${brandLimit.offline_limit}</p>
+            `
+          });
         }
 
         if (onlineStock < brandLimit.online_limit) {
-          const subject = `⚠️ Low Online Stock Alert for ${name} (${brand})`;
-          const body = `
-            <h3>Low Online Stock Alert</h3>
-            <p>Item: <b>${name}</b></p>
-            <p>Brand: <b>${brand}</b></p>
-            <p>Current Online Stock: <b>${onlineStock}</b></p>
-            <p>Online Limit: <b>${brandLimit.online_limit}</b></p>
-            <p>Please restock soon.</p>
-          `;
+          alerts.push({
+            subject: `⚠️ Low Online Stock Alert for ${name} (${brand})`,
+            html: `
+              <h3>Low Online Stock Alert</h3>
+              <p><b>Item:</b> ${name}</p>
+              <p><b>Brand:</b> ${brand}</p>
+              <p><b>Current Online Stock:</b> ${onlineStock}</p>
+              <p><b>Online Limit:</b> ${brandLimit.online_limit}</p>
+            `
+          });
+        }
+
+        // ✅ Send alerts via Brevo API
+        for (const alert of alerts) {
+          const sendSmtpEmail = {
+            sender: { email: process.env.SENDER_EMAIL, name: "JR Stationaries" },
+            to: [{ email: process.env.OWNER_EMAIL }],
+            subject: alert.subject,
+            htmlContent: alert.html,
+          };
 
           try {
-            await transporter.sendMail({
-              from: process.env.SENDER_EMAIL,
-              to: process.env.OWNER_EMAIL,
-              subject,
-              html: body,
-            });
-            console.log(`📩 Online stock alert sent for ${name} (${brand})`);
+            await tranEmailApi.sendTransacEmail(sendSmtpEmail);
+            console.log(`📩 Sent Brevo alert: ${alert.subject}`);
           } catch (err) {
-            console.error('❌ Failed to send online stock alert:', err);
+            console.error('❌ Brevo send error:', err.response?.text || err.message);
           }
         }
       }
@@ -425,10 +400,7 @@ app.post('/api/orders', async (req, res) => {
       stockUpdates.push({ name, brand, decreasedBy: quantitySold });
     }
 
-    // ✅ Insert sales records
-    if (salesRecords.length) {
-      await Sale.insertMany(salesRecords);
-    }
+    if (salesRecords.length) await Sale.insertMany(salesRecords);
 
     console.log('✅ Order and sales saved successfully.');
     return res.json({
@@ -447,6 +419,7 @@ app.post('/api/orders', async (req, res) => {
     });
   }
 });
+
 
 
 // ✅ Get all online orders
@@ -537,26 +510,13 @@ app.post('/api/login', async (req, res) => {
 const Negotiation = require('./models/Negotiations');
 
 // ===================== NEGOTIATION =====================
+ // Put this near your imports
+
 app.post('/api/negotiate', async (req, res) => {
   try {
     const { customer, items, originalTotal, negotiatedTotal } = req.body;
 
-    // 1️⃣ Create transporter inside the route
-    const nodemailer = require("nodemailer");
-    const ownerEmail = process.env.OWNER_EMAIL;
-    const ownerPass = process.env.OWNER_EMAIL_PASS; // or OWNER_EMAIL_PASS
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587, // Brevo uses 587
-      secure: false,
-      auth: {
-        user: process.env.BREVO_EMAIL,
-        pass: ownerPass,
-      },
-    });
-
-    // 2️⃣ Save negotiation in DB
+    // 1️⃣ Save negotiation in DB
     await Negotiation.create({
       customer,
       items: items.map(i => ({
@@ -569,27 +529,42 @@ app.post('/api/negotiate', async (req, res) => {
       negotiatedTotal,
     });
 
-    // 3️⃣ Send the email
-    await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      replyTo: customer.email,
-      to: ownerEmail,
+    // 2️⃣ Setup Brevo API client
+    const SibApiV3Sdk = require('sib-api-v3-sdk'); // ✅ REQUIRED import
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    const apiKey = defaultClient.authentications['api-key'];
+    apiKey.apiKey = process.env.BREVO_API_KEY; // Add this key in Render env vars
+
+    const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    // 3️⃣ Compose negotiation email
+    const sendSmtpEmail = {
+      sender: {
+        email: process.env.SENDER_EMAIL, // Must be verified in Brevo
+        name: "JR Stationaries",
+      },
+      to: [{ email: process.env.OWNER_EMAIL }], // Owner who receives the negotiation
       subject: `Negotiation Request from ${customer.name}`,
-      html: `
+      htmlContent: `
         <h3>Negotiation Request</h3>
         <p><b>Name:</b> ${customer.name}</p>
         <p><b>Email:</b> ${customer.email}</p>
         <p><b>Phone:</b> ${customer.phone || 'N/A'}</p>
         <p><b>Original Total:</b> ₹${originalTotal}</p>
         <p><b>Requested Total:</b> ₹${negotiatedTotal}</p>
-        <p><b>Items:</b> ${items.map(i => `${i.name} (${i.brand}) x ${i.quantity || i.bundles}`).join(', ')}</p>
-        <p>Reply to this email to contact the customer.</p>
+        <p><b>Items:</b> ${items.map(i => `${i.name} (${i.brand}) × ${i.quantity || i.bundles}`).join(', ')}</p>
+        <p>You can reply directly to this email to contact the customer.</p>
       `,
-    });
+    };
 
+    // 4️⃣ Send via Brevo Transactional Email API
+    await tranEmailApi.sendTransacEmail(sendSmtpEmail);
+
+    console.log("📩 Negotiation request email sent successfully");
     res.json({ success: true });
+
   } catch (err) {
-    console.error("❌ Negotiation mail error:", err);
+    console.error("❌ Negotiation mail error:", err.response?.text || err.message);
     res.status(500).json({ error: "Error saving negotiation or sending email" });
   }
 });
@@ -657,7 +632,7 @@ app.post('/api/online-orders', async (req, res) => {
     if (!items || !Array.isArray(items) || items.length === 0)
       return res.status(400).json({ message: 'Cart is empty' });
 
-    // 1️⃣ Save the order (subtotal already reflects negotiation if applicable)
+    // 1️⃣ Save the order
     const newOrder = new OnlineOrder({
       name: name || 'Anonymous',
       address: address || 'N/A',
@@ -676,23 +651,18 @@ app.post('/api/online-orders', async (req, res) => {
 
     await newOrder.save();
 
-    // 2️⃣ Mail transporter (for alerts)
-    const ownerEmail = process.env.OWNER_EMAIL;
-    const ownerEmailPass = process.env.OWNER_EMAIL_PASS;
-    let transporter = null;
-    if (ownerEmail && ownerEmailPass) {
-      const nodemailer = require("nodemailer");
-      transporter = nodemailer.createTransport({
-        host: "smtp-relay.brevo.com",
-        port: 587, // Brevo uses 587
-        secure: false,
-        auth: { user: process.env.BREVO_EMAIL, pass: ownerEmailPass },
-      });
-    }
+    // ✅ Setup Brevo API client (instead of nodemailer)
+    const SibApiV3Sdk = require("sib-api-v3-sdk");
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    const apiKey = defaultClient.authentications["api-key"];
+    apiKey.apiKey = process.env.BREVO_API_KEY; // put this in .env
+    const tranEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+
+    const ownerEmail = process.env.OWNER_EMAIL; // your receiving email (e.g. gmail)
 
     // 3️⃣ Compute negotiation ratio
     let originalTotal = 0;
-    const itemDocs = {}; // cache to avoid repeated DB hits
+    const itemDocs = {};
 
     for (const it of items) {
       const itemName = it.itemName || it.name;
@@ -723,10 +693,7 @@ app.post('/api/online-orders', async (req, res) => {
       }
 
       const itemDoc = itemDocs[itemName] || await Item.findOne({ name: itemName });
-      if (!itemDoc) {
-        console.warn(`⚠️ Item not found in DB: ${itemName}`);
-        continue;
-      }
+      if (!itemDoc) continue;
 
       const unitPrice = Number(itemDoc.price?.[brand] ?? it.bundlePrice ?? 0);
       const adjustedUnitPrice = unitPrice * negotiationRatio;
@@ -746,18 +713,13 @@ app.post('/api/online-orders', async (req, res) => {
         date: new Date()
       });
 
-      // 5️⃣ Update stock & online stock
+      // Update stock
       const qtyKey = `quantity.${brand}`;
       const onlineKey = `online_stock.${brand}`;
 
       const updated = await Item.findByIdAndUpdate(
         itemDoc._id,
-        {
-          $inc: {
-            [qtyKey]: -quantitySold,
-            [onlineKey]: -quantitySold
-          }
-        },
+        { $inc: { [qtyKey]: -quantitySold, [onlineKey]: -quantitySold } },
         { new: true }
       );
 
@@ -767,7 +729,7 @@ app.post('/api/online-orders', async (req, res) => {
         if (newQty < 0) await Item.findByIdAndUpdate(itemDoc._id, { $set: { [qtyKey]: 0 } });
         if (newOnline < 0) await Item.findByIdAndUpdate(itemDoc._id, { $set: { [onlineKey]: 0 } });
 
-        // 🔔 Check for low online stock and send alert
+        // 🔔 Low stock alert
         const refreshed = await Item.findById(itemDoc._id);
         const brandLimit = refreshed.limits?.find(l => l.brand === brand);
         if (brandLimit && refreshed.online_stock?.[brand] < brandLimit.online_limit) {
@@ -781,18 +743,16 @@ app.post('/api/online-orders', async (req, res) => {
             <p><b>Online Limit:</b> ${brandLimit.online_limit}</p>
           `;
 
-          if (transporter) {
-            try {
-              await transporter.sendMail({
-                from: process.env.SENDER_EMAIL,
-                to: ownerEmail,
-                subject,
-                html,
-              });
-              console.log(`📩 Low online stock alert sent for ${itemName} (${brand})`);
-            } catch (err) {
-              console.error('❌ Failed to send online stock alert:', err);
-            }
+          try {
+            await tranEmailApi.sendTransacEmail({
+              sender: { email: ownerEmail, name: "JR Stationaries" },
+              to: [{ email: ownerEmail }],
+              subject: subject,
+              htmlContent: html
+            });
+            console.log(`📩 Low online stock alert sent for ${itemName} (${brand})`);
+          } catch (err) {
+            console.error('❌ Failed to send Brevo email:', err);
           }
         }
       }
@@ -800,14 +760,9 @@ app.post('/api/online-orders', async (req, res) => {
 
     // 6️⃣ Insert into Sales collection
     if (salesRecords.length > 0) {
-      try {
-        await Sale.insertMany(salesRecords);
-      } catch (err) {
-        console.error('⚠️ Failed to insert some sales records:', err.message);
-      }
+      await Sale.insertMany(salesRecords);
     }
 
-    // 7️⃣ Respond success
     res.status(201).json({
       message: 'Online order saved successfully',
       order: newOrder,
