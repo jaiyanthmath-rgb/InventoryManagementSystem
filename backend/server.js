@@ -20,15 +20,12 @@ app.use(cors());
 
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,        // true for port 465, false for 587
+  host: "smtp-relay.brevo.com",
+  port: 587, // Brevo uses 587
+  secure: false, // must be false for port 587
   auth: {
-    user: process.env.OWNER_EMAIL,
-    pass: process.env.OWNER_PASS,  // or OWNER_EMAIL_PASS, just keep it consistent
-  },
-  tls: {
-    rejectUnauthorized: false,
+    user: process.env.BREVO_EMAIL,
+    pass: process.env.OWNER_EMAIL_PASS,
   },
 });
 
@@ -297,9 +294,11 @@ app.post('/api/orders', async (req, res) => {
 
     // ✅ Configure email transporter once
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false,
       auth: {
-        user: process.env.OWNER_EMAIL,
+        user: process.env.BREVO_EMAIL,
         pass: process.env.OWNER_EMAIL_PASS,
       },
     });
@@ -387,7 +386,7 @@ app.post('/api/orders', async (req, res) => {
 
           try {
             await transporter.sendMail({
-              from: process.env.OWNER_EMAIL,
+              from: process.env.SENDER_EMAIL,
               to: process.env.OWNER_EMAIL,
               subject,
               html: body,
@@ -411,7 +410,7 @@ app.post('/api/orders', async (req, res) => {
 
           try {
             await transporter.sendMail({
-              from: process.env.OWNER_EMAIL,
+              from: process.env.SENDER_EMAIL,
               to: process.env.OWNER_EMAIL,
               subject,
               html: body,
@@ -548,9 +547,11 @@ app.post('/api/negotiate', async (req, res) => {
     const ownerPass = process.env.OWNER_EMAIL_PASS; // or OWNER_EMAIL_PASS
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp-relay.brevo.com",
+      port: 587, // Brevo uses 587
+      secure: false,
       auth: {
-        user: ownerEmail,
+        user: process.env.BREVO_EMAIL,
         pass: ownerPass,
       },
     });
@@ -570,7 +571,7 @@ app.post('/api/negotiate', async (req, res) => {
 
     // 3️⃣ Send the email
     await transporter.sendMail({
-      from: ownerEmail,
+      from: process.env.SENDER_EMAIL,
       replyTo: customer.email,
       to: ownerEmail,
       subject: `Negotiation Request from ${customer.name}`,
@@ -682,8 +683,10 @@ app.post('/api/online-orders', async (req, res) => {
     if (ownerEmail && ownerEmailPass) {
       const nodemailer = require("nodemailer");
       transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: { user: ownerEmail, pass: ownerEmailPass },
+        host: "smtp-relay.brevo.com",
+        port: 587, // Brevo uses 587
+        secure: false,
+        auth: { user: process.env.BREVO_EMAIL, pass: ownerEmailPass },
       });
     }
 
@@ -781,7 +784,7 @@ app.post('/api/online-orders', async (req, res) => {
           if (transporter) {
             try {
               await transporter.sendMail({
-                from: ownerEmail,
+                from: process.env.SENDER_EMAIL,
                 to: ownerEmail,
                 subject,
                 html,
@@ -1232,4 +1235,3 @@ app.post("/api/checkStock", async (req, res) => {
 // ===================== SERVER =====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
