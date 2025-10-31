@@ -21,8 +21,8 @@ app.use(cors());
 // Nodemailer transporter (Gmail)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,           // or 587 if 465 fails
-  secure: true,        // true for port 465, false for 587
+  port: 587,
+  secure: false,        // true for port 465, false for 587
   auth: {
     user: process.env.OWNER_EMAIL,
     pass: process.env.OWNER_PASS,  // or OWNER_EMAIL_PASS, just keep it consistent
@@ -1232,3 +1232,4 @@ app.post("/api/checkStock", async (req, res) => {
 // ===================== SERVER =====================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
